@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sorella is a neighborhood Italian kitchen serving seasonal plates, handmade pasta, and slow evenings in the city." />
+  <title>Sorella | Italian Kitchen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="announcement">Kitchen open until 11pm tonight <span>•</span> Walk-ins welcome at the bar</div>
+
+  <header class="site-header" id="top">
+    <a class="brand" href="#top" aria-label="Sorella home">
+      <span class="brand-mark">S</span>
+      <span class="brand-copy"><strong>Sorella</strong><small>Italian kitchen</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="#menu">Menu</a>
+      <a href="#story">Our story</a>
+      <a href="#visit">Visit us</a>
+    </nav>
+    <button class="button button-dark header-cta" data-open-reservation>Book a table <span>↗</span></button>
+    <button class="menu-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+  </header>
+  <div class="mobile-nav" aria-hidden="true">
+    <a href="#menu">Menu</a><a href="#story">Our story</a><a href="#visit">Visit us</a>
+    <button class="button button-dark" data-open-reservation>Book a table <span>↗</span></button>
+  </div>
+
+  <main>
+    <section class="hero section-pad">
+      <div class="hero-copy reveal">
+        <p class="eyebrow"><span class="eyebrow-line"></span> Little Italy, big heart</p>
+        <h1>Come for the<br /><em>pasta.</em> Stay for<br />the stories.</h1>
+        <p class="hero-intro">A neighborhood kitchen with a soft spot for handmade pasta, long lunches, and the people who make a table feel like home.</p>
+        <div class="hero-actions">
+          <button class="button button-primary" data-open-reservation>Reserve your table <span>↗</span></button>
+          <a class="text-link" href="#menu">Explore the menu <span>↓</span></a>
+        </div>
+        <div class="hero-note"><span class="note-dot"></span><span>Now serving our spring menu</span><span class="note-rule"></span><span>Est. 2018</span></div>
+      </div>
+      <div class="hero-visual reveal reveal-delay">
+        <div class="hero-image-wrap"><img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1300&q=88" alt="Fresh pasta being served on a ceramic plate" /></div>
+        <div class="image-caption"><span>01</span><span>made by hand,<br />served with heart</span></div>
+        <div class="hero-stamp"><span>Buon<br />appetito</span><span class="stamp-star">✦</span></div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-label="Restaurant highlights"><div class="marquee-track"><span>HANDMADE DAILY</span><i>✦</i><span>SEASONAL INGREDIENTS</span><i>✦</i><span>GOOD WINE</span><i>✦</i><span>LONG LUNCHES</span><i>✦</i><span>HANDMADE DAILY</span><i>✦</i><span>SEASONAL INGREDIENTS</span><i>✦</i></div></section>
+
+    <section class="story section-pad" id="story">
+      <div class="section-label reveal"><span>02</span><span>What we believe</span></div>
+      <div class="story-grid">
+        <div class="story-heading reveal"><h2>Simple food.<br /><em>Big feeling.</em></h2><span class="scribble">~</span></div>
+        <div class="story-copy reveal reveal-delay"><p class="large-copy">We cook the kind of food that makes you loosen your belt and stay a little longer.</p><p>At Sorella, everything starts with the best ingredients we can find and the recipes we grew up with. Nothing fussy. Just generous plates, good wine, and a room full of people you want to be around.</p><a class="text-link" href="#visit">Meet us properly <span>↗</span></a></div>
+      </div>
+      <div class="story-images reveal"><div class="story-image tall"><img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85" alt="Chef preparing a colorful seasonal dish" /></div><div class="story-image wide"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1100&q=85" alt="Warm restaurant dining room with tables set for dinner" /><div class="image-tag">The table<br />is always set.</div></div></div>
+    </section>
+
+    <section class="menu-section section-pad" id="menu">
+      <div class="menu-heading reveal"><div class="section-label"><span>03</span><span>From the kitchen</span></div><div><h2>Tonight's<br /><em>favorites.</em></h2><p>Built around the market, finished with a little magic.</p></div></div>
+      <div class="menu-tabs reveal" role="tablist" aria-label="Menu categories"><button class="tab active" data-category="antipasti">Antipasti</button><button class="tab" data-category="pasta">Pasta + pizza</button><button class="tab" data-category="secondi">Secondi</button><button class="tab" data-category="dolci">Dolci</button></div>
+      <div class="menu-list" id="menu-list"></div>
+      <div class="menu-footer"><span>Our menu changes with the market.</span><a class="text-link" href="#visit">View full menu <span>↗</span></a></div>
+    </section>
+
+    <section class="reservation-banner section-pad" id="visit">
+      <div class="reservation-inner reveal"><div><p class="eyebrow light"><span class="eyebrow-line"></span> Your table is waiting</p><h2>Make a night<br /><em>of it.</em></h2></div><div class="reservation-side"><p>Come as you are. Bring someone you love. We'll take care of the rest.</p><button class="button button-light" data-open-reservation>Book a table <span>↗</span></button></div></div>
+    </section>
+
+    <section class="visit-section section-pad"><div class="visit-grid"><div class="visit-details reveal"><div class="section-label"><span>04</span><span>Find us</span></div><h2>See you<br /><em>soon?</em></h2><div class="address"><p>48 Orchard Street<br />New York, NY 10002</p><a class="text-link" href="https://maps.google.com" target="_blank" rel="noreferrer">Get directions <span>↗</span></a></div></div><div class="hours reveal reveal-delay"><div class="hours-row"><span>Monday – Thursday</span><strong>5pm – 10pm</strong></div><div class="hours-row"><span>Friday – Saturday</span><strong>5pm – 11pm</strong></div><div class="hours-row"><span>Sunday</span><strong>4pm – 9pm</strong></div><div class="hours-note">Walk-ins always welcome<br />at the bar.</div></div><div class="contact-card reveal"><span class="contact-icon">✦</span><p>Have a big question,<br />a little question,<br />or just want to say hi?</p><a href="mailto:ciao@sorellakitchen.com">ciao@sorellakitchen.com</a></div></div></section>
+  </main>
+
+  <footer class="site-footer"><a class="brand" href="#top"><span class="brand-mark">S</span><span class="brand-copy"><strong>Sorella</strong><small>Italian kitchen</small></span></a><p>Come hungry, leave happy.</p><div class="footer-links"><a href="#menu">Instagram</a><a href="#visit">Contact</a><a href="#top">Back to top ↑</a></div></footer>
+
+  <div class="modal-backdrop" aria-hidden="true"><div class="reservation-modal" role="dialog" aria-modal="true" aria-labelledby="reservation-title"><button class="modal-close" aria-label="Close reservation dialog">×</button><p class="eyebrow"><span class="eyebrow-line"></span> A table for you</p><h2 id="reservation-title">Let's make<br /><em>plans.</em></h2><form id="reservation-form"><div class="form-row"><label>Name<input type="text" name="name" placeholder="Your name" required /></label><label>Guests<select name="guests"><option>2 guests</option><option>3 guests</option><option>4 guests</option><option>5+ guests</option></select></label></div><div class="form-row"><label>Date<input type="date" name="date" required /></label><label>Time<select name="time"><option>6:00 pm</option><option>6:30 pm</option><option>7:00 pm</option><option>7:30 pm</option><option>8:00 pm</option><option>8:30 pm</option></select></label></div><button class="button button-primary form-submit" type="submit">Find a table <span>↗</span></button><p class="form-note">We'll hold your table for 15 minutes.</p></form></div></div>
+  <div class="toast" role="status">Your table request is in. See you soon!</div>
+  <script src="script.js"></script>
+</body>
+</html>
