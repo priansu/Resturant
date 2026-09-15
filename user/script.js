@@ -69,12 +69,48 @@ document.addEventListener('keydown', (event) => {
 
 document.querySelector('#reservation-form').addEventListener('submit', (event) => {
   event.preventDefault();
+  const formData = new FormData(event.target);
+  const booking = {
+    id: `booking-${Date.now()}`,
+    name: formData.get('name'),
+    guests: formData.get('guests'),
+    date: formData.get('date'),
+    time: formData.get('time'),
+    status: 'New',
+    createdAt: new Date().toISOString()
+  };
+  const bookings = JSON.parse(localStorage.getItem('sorellaBookings') || '[]');
+  localStorage.setItem('sorellaBookings', JSON.stringify([booking, ...bookings]));
+  localStorage.setItem('sorellaLastBookingId', booking.id);
   closeModal();
   const toast = document.querySelector('.toast');
   toast.classList.add('show');
   event.target.reset();
   window.setTimeout(() => toast.classList.remove('show'), 4000);
+  updateReservationStatus();
 });
+
+function updateReservationStatus() {
+  const statusPanel = document.querySelector('#reservation-status');
+  const lastBookingId = localStorage.getItem('sorellaLastBookingId');
+  const booking = JSON.parse(localStorage.getItem('sorellaBookings') || '[]').find((item) => item.id === lastBookingId);
+  if (!booking) {
+    statusPanel.hidden = true;
+    return;
+  }
+  const messages = {
+    New: 'Your request is pending confirmation from Sorella.',
+    Confirmed: 'Your reservation is confirmed. We look forward to seeing you.',
+    Rejected: 'This request was not accepted. Please choose another time or contact us.'
+  };
+  statusPanel.hidden = false;
+  statusPanel.dataset.status = booking.status.toLowerCase();
+  statusPanel.querySelector('strong').textContent = booking.status === 'New' ? 'Pending' : booking.status;
+  statusPanel.querySelector('p').textContent = messages[booking.status];
+}
+
+window.addEventListener('storage', updateReservationStatus);
+updateReservationStatus();
 
 const menuToggle = document.querySelector('.menu-toggle');
 const mobileNav = document.querySelector('.mobile-nav');
