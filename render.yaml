@@ -8,3 +8,17 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 24
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sorella-db
+          property: connectionString
+      - key: your-owner-email
+        sync: false
+      - key: your-strong-password
+        sync: false
+      - key: NODE_ENV
+        value: production
+
+databases:
+  - name: sorella-db
+    plan: free

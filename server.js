@@ -1,85 +1,58 @@
 import cors from 'cors';
 import express from 'express';
-import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { initializeDatabase, readBookings, readCategories, readMenu, readOrders, usingDatabase, writeBookings, writeCategories, writeMenu, writeOrders } from './db.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const dataDirectory = path.join(root, 'data');
-const bookingsFile = path.join(dataDirectory, 'bookings.json');
-const ordersFile = path.join(dataDirectory, 'orders.json');
-const menuFile = path.join(dataDirectory, 'menu.json');
-const categoriesFile = path.join(dataDirectory, 'categories.json');
 const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 
-async function readBookings() {
-  try {
-    return JSON.parse(await readFile(bookingsFile, 'utf8'));
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    await mkdir(dataDirectory, { recursive: true });
-    await writeFile(bookingsFile, '[]');
-    return [];
-  }
+const sessions = new Map();
+const ownerEmail = process.env.OWNER_EMAIL || 'owner@sorella.local';
+const ownerPassword = process.env.OWNER_PASSWORD || 'change-this-password';
+const cookieOptions = process.env.NODE_ENV === 'production' ? '; HttpOnly; SameSite=Lax; Secure' : '; HttpOnly; SameSite=Lax';
+
+function getSessionToken(request) {
+  return request.headers.cookie?.split(';').map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith('sorella_session='))?.split('=')[1];
 }
 
-async function writeBookings(bookings) {
-  await mkdir(dataDirectory, { recursive: true });
-  await writeFile(bookingsFile, JSON.stringify(bookings, null, 2));
+function requireOwner(request, response, next) {
+  const token = getSessionToken(request);
+  if (!token || !sessions.has(token)) return response.status(401).json({ error: 'Owner login required.' });
+  next();
 }
 
-async function readOrders() {
-  try {
-    return JSON.parse(await readFile(ordersFile, 'utf8'));
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    await mkdir(dataDirectory, { recursive: true });
-    await writeFile(ordersFile, '[]');
-    return [];
-  }
-}
+app.post('/api/auth/login', (request, response) => {
+  const { email, password } = request.body;
+  const emailMatches = String(email || '').toLowerCase() === ownerEmail.toLowerCase();
+  const passwordBuffer = Buffer.from(String(password || ''));
+  const expectedBuffer = Buffer.from(ownerPassword);
+  const passwordMatches = passwordBuffer.length === expectedBuffer.length && timingSafeEqual(passwordBuffer, expectedBuffer);
+  if (!emailMatches || !passwordMatches) return response.status(401).json({ error: 'Invalid owner email or password.' });
+  const token = randomBytes(32).toString('hex');
+  sessions.set(token, { email: ownerEmail, createdAt: Date.now() });
+  response.setHeader('Set-Cookie', `sorella_session=${token}; Path=/; Max-Age=86400${cookieOptions}`);
+  response.json({ email: ownerEmail });
+});
 
-async function writeOrders(orders) {
-  await mkdir(dataDirectory, { recursive: true });
-  await writeFile(ordersFile, JSON.stringify(orders, null, 2));
-}
+app.get('/api/auth/me', (request, response) => {
+  const token = getSessionToken(request);
+  const session = token && sessions.get(token);
+  if (!session) return response.status(401).json({ error: 'Owner login required.' });
+  response.json(session);
+});
 
-async function readMenu() {
-  try {
-    return JSON.parse(await readFile(menuFile, 'utf8'));
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    await mkdir(dataDirectory, { recursive: true });
-    await writeFile(menuFile, '[]');
-    return [];
-  }
-}
-
-async function writeMenu(menu) {
-  await mkdir(dataDirectory, { recursive: true });
-  await writeFile(menuFile, JSON.stringify(menu, null, 2));
-}
-
-async function readCategories() {
-  try {
-    return JSON.parse(await readFile(categoriesFile, 'utf8'));
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    const categories = [...new Set((await readMenu()).map((dish) => dish.category))];
-    await writeFile(categoriesFile, JSON.stringify(categories, null, 2));
-    return categories;
-  }
-}
-
-async function writeCategories(categories) {
-  await mkdir(dataDirectory, { recursive: true });
-  await writeFile(categoriesFile, JSON.stringify(categories, null, 2));
-}
+app.post('/api/auth/logout', (request, response) => {
+  const token = getSessionToken(request);
+  if (token) sessions.delete(token);
+  response.setHeader('Set-Cookie', 'sorella_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+  response.status(204).end();
+});
 
 app.get('/api/health', (_request, response) => response.json({ ok: true }));
 
@@ -99,7 +72,7 @@ app.get('/api/categories', async (_request, response, next) => {
   }
 });
 
-app.post('/api/categories', async (request, response, next) => {
+app.post('/api/categories', requireOwner, async (request, response, next) => {
   try {
     const name = String(request.body.name || '').trim().toLowerCase().replace(/\s+/g, '-');
     if (!name || !/^[a-z0-9-]+$/.test(name)) {
@@ -115,7 +88,7 @@ app.post('/api/categories', async (request, response, next) => {
   }
 });
 
-app.delete('/api/categories/:name', async (request, response, next) => {
+app.delete('/api/categories/:name', requireOwner, async (request, response, next) => {
   try {
     const category = request.params.name;
     const menu = await readMenu();
@@ -131,7 +104,7 @@ app.delete('/api/categories/:name', async (request, response, next) => {
   }
 });
 
-app.post('/api/menu', async (request, response, next) => {
+app.post('/api/menu', requireOwner, async (request, response, next) => {
   try {
     const { category, name, description, price } = request.body;
     if (!name || !description || !price) {
@@ -154,7 +127,7 @@ app.post('/api/menu', async (request, response, next) => {
   }
 });
 
-app.delete('/api/menu/:id', async (request, response, next) => {
+app.delete('/api/menu/:id', requireOwner, async (request, response, next) => {
   try {
     const menu = await readMenu();
     const remaining = menu.filter((dish) => dish.id !== request.params.id);
@@ -166,7 +139,7 @@ app.delete('/api/menu/:id', async (request, response, next) => {
   }
 });
 
-app.get('/api/bookings', async (_request, response, next) => {
+app.get('/api/bookings', requireOwner, async (_request, response, next) => {
   try {
     response.json(await readBookings());
   } catch (error) {
@@ -174,7 +147,17 @@ app.get('/api/bookings', async (_request, response, next) => {
   }
 });
 
-app.get('/api/orders', async (_request, response, next) => {
+app.get('/api/bookings/:id', async (request, response, next) => {
+  try {
+    const booking = (await readBookings()).find((item) => item.id === request.params.id);
+    if (!booking) return response.status(404).json({ error: 'Booking not found.' });
+    response.json(booking);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/orders', requireOwner, async (_request, response, next) => {
   try {
     response.json(await readOrders());
   } catch (error) {
@@ -247,7 +230,7 @@ app.post('/api/orders', async (request, response, next) => {
   }
 });
 
-app.patch('/api/orders/:id', async (request, response, next) => {
+app.patch('/api/orders/:id', requireOwner, async (request, response, next) => {
   try {
     const { status } = request.body;
     if (!['Preparing', 'Ready', 'Completed', 'Rejected'].includes(status)) {
@@ -266,7 +249,7 @@ app.patch('/api/orders/:id', async (request, response, next) => {
   }
 });
 
-app.post('/api/orders/:id/items', async (request, response, next) => {
+app.post('/api/orders/:id/items', requireOwner, async (request, response, next) => {
   try {
     const { dishId, quantity } = request.body;
     const orders = await readOrders();
@@ -289,7 +272,7 @@ app.post('/api/orders/:id/items', async (request, response, next) => {
   }
 });
 
-app.delete('/api/orders/:id', async (request, response, next) => {
+app.delete('/api/orders/:id', requireOwner, async (request, response, next) => {
   try {
     const orders = await readOrders();
     const remaining = orders.filter((order) => order.id !== request.params.id);
@@ -327,7 +310,7 @@ app.post('/api/bookings', async (request, response, next) => {
   }
 });
 
-app.patch('/api/bookings/:id', async (request, response, next) => {
+app.patch('/api/bookings/:id', requireOwner, async (request, response, next) => {
   try {
     const { status } = request.body;
     if (!['Confirmed', 'Rejected'].includes(status)) {
@@ -354,7 +337,7 @@ app.patch('/api/bookings/:id', async (request, response, next) => {
   }
 });
 
-app.delete('/api/bookings/:id', async (request, response, next) => {
+app.delete('/api/bookings/:id', requireOwner, async (request, response, next) => {
   try {
     const bookings = await readBookings();
     const booking = bookings.find((item) => item.id === request.params.id);
@@ -380,4 +363,9 @@ app.use((error, _request, response, _next) => {
   response.status(500).json({ error: 'Something went wrong on the server.' });
 });
 
-app.listen(port, () => console.log(`Sorella API listening on http://localhost:${port}`));
+initializeDatabase().then(() => {
+  app.listen(port, () => console.log(`Sorella API listening on http://localhost:${port}${usingDatabase ? ' with PostgreSQL' : ''}`));
+}).catch((error) => {
+  console.error('Database initialization failed.', error);
+  process.exitCode = 1;
+});

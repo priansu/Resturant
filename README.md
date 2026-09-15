@@ -34,4 +34,8 @@ Open `http://localhost:3001/` and `http://localhost:3001/owner`.
 
 The service uses `npm install && npm run build` to build React and `npm start` to run Node.
 
-Important: the current app stores bookings, orders, menu items, and categories in local JSON files. Render's free service has ephemeral storage, so those files can be reset on a restart or redeploy. For real production use, move this data to a hosted database such as PostgreSQL/Supabase and add owner authentication before sharing the owner URL publicly.
+The Render blueprint now creates a PostgreSQL database and injects its connection string as `DATABASE_URL`. On first startup, the app creates the SQL tables from `schema.sql` and seeds an empty database from the existing JSON files. Local development continues to use the JSON files when `DATABASE_URL` is not set.
+
+Set `OWNER_EMAIL` and `OWNER_PASSWORD` in Render before deploying. The owner dashboard at `/owner` requires this login; booking lists and all menu/order management actions are protected by the session. Use `.env.example` as the local environment template.
+
+When `DATABASE_URL` is configured, production data is stored in PostgreSQL instead of local JSON files. Add owner authentication before sharing the owner URL publicly.
