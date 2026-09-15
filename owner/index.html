@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorella | Owner bookings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="owner-header">
+    <a class="brand" href="../index.html" aria-label="Back to Sorella website">
+      <span class="brand-mark">S</span>
+      <span class="brand-copy"><strong>Sorella</strong><small>Owner desk</small></span>
+    </a>
+    <a class="back-link" href="../index.html">View customer site <span>↗</span></a>
+  </header>
+
+  <main class="dashboard">
+    <section class="dashboard-intro">
+      <div>
+        <p class="eyebrow"><span></span> Reservation desk</p>
+        <h1>Tonight's <em>table.</em></h1>
+        <p class="intro-copy">New booking requests appear here as soon as a guest submits the form.</p>
+      </div>
+      <button class="refresh-button" id="refresh-bookings" type="button"><span>↻</span> Refresh</button>
+    </section>
+
+    <section class="stats" aria-label="Booking summary">
+      <div class="stat"><span>New requests</span><strong id="new-count">0</strong></div>
+      <div class="stat"><span>Confirmed</span><strong id="confirmed-count">0</strong></div>
+      <div class="stat"><span>Total bookings</span><strong id="total-count">0</strong></div>
+    </section>
+
+    <section class="bookings-section">
+      <div class="section-heading">
+        <div><p class="eyebrow"><span></span> Live inbox</p><h2>Booking requests</h2></div>
+        <label class="filter-label">Show <select id="status-filter"><option value="all">All bookings</option><option value="New">Pending only</option><option value="Confirmed">Confirmed only</option><option value="Rejected">Rejected only</option></select></label>
+      </div>
+      <div id="booking-list" class="booking-list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
