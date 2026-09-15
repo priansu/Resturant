@@ -1,12 +1,12 @@
 [
   {
-    "id": "bc8b2e1e-cb8e-4585-bf3f-d55ad4e10fec",
+    "id": "58c31f47-7190-4493-87a6-c73fcc815b60",
     "name": "Priansu",
     "guests": "2 guests",
-    "date": "2026-09-17",
+    "date": "2026-09-25",
     "time": "6:00 pm",
-    "status": "Rejected",
-    "createdAt": "2026-09-15T08:26:32.037Z",
-    "updatedAt": "2026-09-15T08:26:38.897Z"
+    "status": "Confirmed",
+    "createdAt": "2026-09-15T09:40:53.009Z",
+    "updatedAt": "2026-09-15T09:40:58.936Z"
   }
 ]

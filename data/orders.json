@@ -1,0 +1,33 @@
+[
+  {
+    "id": "bc67eba3-0e71-40a6-8665-aa92fc27a627",
+    "customerName": "Priansu Kumar Rai",
+    "email": "priansurai@gmail.com",
+    "phone": "9304483580",
+    "orderType": "Dine in",
+    "items": [
+      {
+        "id": "antipasti-burrata",
+        "name": "Burrata & the good tomatoes",
+        "price": "$16",
+        "quantity": 1
+      },
+      {
+        "id": "antipasti-polpette",
+        "name": "Polpette della nonna",
+        "price": "$15",
+        "quantity": 2
+      },
+      {
+        "id": "secondi-branzino",
+        "name": "Branzino alla griglia",
+        "price": "$32",
+        "quantity": 1
+      }
+    ],
+    "total": "$78.00",
+    "status": "Completed",
+    "createdAt": "2026-09-15T09:50:45.048Z",
+    "updatedAt": "2026-09-15T10:05:14.572Z"
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "antipasti-burrata",
+    "category": "antipasti",
+    "name": "Burrata & the good tomatoes",
+    "description": "Basil oil, sea salt, toasted sourdough",
+    "price": "$16"
+  },
+  {
+    "id": "antipasti-polpette",
+    "category": "antipasti",
+    "name": "Polpette della nonna",
+    "description": "Beef + pork meatballs, spicy sugo, pecorino",
+    "price": "$15"
+  },
+  {
+    "id": "antipasti-artichokes",
+    "category": "antipasti",
+    "name": "Fried artichokes",
+    "description": "Lemon, parsley, whipped ricotta",
+    "price": "$14"
+  },
+  {
+    "id": "pasta-cacio",
+    "category": "pasta",
+    "name": "Cacio e pepe",
+    "description": "Tonnarelli, pecorino romano, black pepper",
+    "price": "$19"
+  },
+  {
+    "id": "pasta-rigatoni",
+    "category": "pasta",
+    "name": "Rigatoni alla vodka",
+    "description": "Calabrian chili, tomato, parmesan, basil",
+    "price": "$21"
+  },
+  {
+    "id": "pasta-tagliatelle",
+    "category": "pasta",
+    "name": "Tagliatelle al ragu",
+    "description": "Slow-cooked beef, pork, soffritto, parmigiano",
+    "price": "$23"
+  },
+  {
+    "id": "secondi-chicken",
+    "category": "secondi",
+    "name": "Chicken al mattone",
+    "description": "Castelvetrano olives, lemon, spring greens",
+    "price": "$29"
+  },
+  {
+    "id": "secondi-branzino",
+    "category": "secondi",
+    "name": "Branzino alla griglia",
+    "description": "Fennel, orange, salsa verde",
+    "price": "$32"
+  },
+  {
+    "id": "secondi-eggplant",
+    "category": "secondi",
+    "name": "Eggplant parmigiana",
+    "description": "San Marzano tomato, mozzarella, basil",
+    "price": "$24"
+  },
+  {
+    "id": "dolci-tiramisu",
+    "category": "dolci",
+    "name": "Tiramisu",
+    "description": "Espresso, mascarpone, cocoa, ladyfingers",
+    "price": "$11"
+  },
+  {
+    "id": "dolci-cake",
+    "category": "dolci",
+    "name": "Olive oil cake",
+    "description": "Citrus curd, rosemary, crema",
+    "price": "$10"
+  },
+  {
+    "id": "dolci-affogato",
+    "category": "dolci",
+    "name": "Affogato",
+    "description": "Vanilla gelato, hot espresso, biscotti",
+    "price": "$8"
+  }
+]
