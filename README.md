@@ -23,3 +23,15 @@ npm start
 ```
 
 Open `http://localhost:3001/` and `http://localhost:3001/owner`.
+
+## Deploy on Render
+
+1. Push this project to GitHub, including `render.yaml`.
+2. In Render, choose **New +** -> **Blueprint**.
+3. Select the GitHub repository and branch `fix/added_feature`.
+4. Confirm the service settings from `render.yaml` and deploy.
+5. Open the deployed URL for the customer site. Add `/owner` for the owner dashboard.
+
+The service uses `npm install && npm run build` to build React and `npm start` to run Node.
+
+Important: the current app stores bookings, orders, menu items, and categories in local JSON files. Render's free service has ephemeral storage, so those files can be reset on a restart or redeploy. For real production use, move this data to a hosted database such as PostgreSQL/Supabase and add owner authentication before sharing the owner URL publicly.
