@@ -6,7 +6,8 @@ import { initializeDatabase, readBookings, readCategories, readMenu, readOrders,
 
 const app = express();
 const port = process.env.PORT || 3001;
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
+const configuredFrontendOrigin = process.env.FRONTEND_URL?.trim().replace(/\/$/, '');
+const allowedOrigins = [configuredFrontendOrigin, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
