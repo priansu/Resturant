@@ -3,7 +3,7 @@ services:
     name: sorella-bookings
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
@@ -12,9 +12,11 @@ services:
         fromDatabase:
           name: sorella-db
           property: connectionString
-      - key: your-owner-email
+      - key: OWNER_EMAIL
         sync: false
-      - key: your-strong-password
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: FRONTEND_URL
         sync: false
       - key: NODE_ENV
         value: production

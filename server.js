@@ -1,21 +1,20 @@
+import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { initializeDatabase, readBookings, readCategories, readMenu, readOrders, usingDatabase, writeBookings, writeCategories, writeMenu, writeOrders } from './db.js';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const root = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3001;
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
 
-app.use(cors());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 const sessions = new Map();
-const ownerEmail = process.env.OWNER_EMAIL || 'owner@sorella.local';
-const ownerPassword = process.env.OWNER_PASSWORD || 'change-this-password';
-const cookieOptions = process.env.NODE_ENV === 'production' ? '; HttpOnly; SameSite=Lax; Secure' : '; HttpOnly; SameSite=Lax';
+const ownerEmail = process.env.OWNER_EMAIL;
+const ownerPassword = process.env.OWNER_PASSWORD;
+const cookieOptions = process.env.NODE_ENV === 'production' ? '; HttpOnly; SameSite=None; Secure' : '; HttpOnly; SameSite=Lax';
 
 function getSessionToken(request) {
   return request.headers.cookie?.split(';').map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith('sorella_session='))?.split('=')[1];
@@ -28,6 +27,7 @@ function requireOwner(request, response, next) {
 }
 
 app.post('/api/auth/login', (request, response) => {
+  if (!ownerEmail || !ownerPassword) return response.status(503).json({ error: 'Owner authentication is not configured.' });
   const { email, password } = request.body;
   const emailMatches = String(email || '').toLowerCase() === ownerEmail.toLowerCase();
   const passwordBuffer = Buffer.from(String(password || ''));
@@ -50,11 +50,11 @@ app.get('/api/auth/me', (request, response) => {
 app.post('/api/auth/logout', (request, response) => {
   const token = getSessionToken(request);
   if (token) sessions.delete(token);
-  response.setHeader('Set-Cookie', 'sorella_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+  response.setHeader('Set-Cookie', `sorella_session=; Path=/; Max-Age=0${cookieOptions}`);
   response.status(204).end();
 });
 
-app.get('/api/health', (_request, response) => response.json({ ok: true }));
+app.get('/api/health', (_request, response) => response.json({ success: true, message: 'API is running', database: usingDatabase ? 'postgresql' : 'json' }));
 
 app.get('/api/menu', async (_request, response, next) => {
   try {
@@ -351,20 +351,15 @@ app.delete('/api/bookings/:id', requireOwner, async (request, response, next) =>
   }
 });
 
-app.use(express.static(path.join(root, 'dist')));
-app.use((request, response, next) => {
-  if (request.method === 'GET' && !request.path.startsWith('/api/')) {
-    return response.sendFile(path.join(root, 'dist', 'index.html'));
-  }
-  next();
-});
+app.use('/api', (_request, response) => response.status(404).json({ success: false, message: 'API route not found.' }));
+
 app.use((error, _request, response, _next) => {
   console.error(error);
-  response.status(500).json({ error: 'Something went wrong on the server.' });
+  response.status(500).json({ success: false, message: 'Something went wrong on the server.' });
 });
 
 initializeDatabase().then(() => {
-  app.listen(port, () => console.log(`Sorella API listening on http://localhost:${port}${usingDatabase ? ' with PostgreSQL' : ''}`));
+  app.listen(port, () => console.log(`Sorella API listening on port ${port}${usingDatabase ? ' with PostgreSQL' : ''}`));
 }).catch((error) => {
   console.error('Database initialization failed.', error);
   process.exitCode = 1;

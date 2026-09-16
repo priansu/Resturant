@@ -1,41 +1,57 @@
-# Sorella bookings
+# Sorella | Italian Kitchen
 
-React customer site and owner dashboard backed by an Express API.
+React/Vite customer and owner frontend deployed to Netlify, backed by an Express API and PostgreSQL on Render. The frontend never connects directly to the database.
 
-## Run in development
+## Local development
 
-```powershell
-npm install
-npm run dev
-```
+1. Install dependencies: `npm install`
+2. Copy `.env.example` to `.env` and set `OWNER_EMAIL` and `OWNER_PASSWORD`.
+3. Leave `DATABASE_URL` empty to use the checked-in JSON fallback, or set it to a local PostgreSQL connection string.
+4. Run both applications with `npm run dev`.
+5. Open `http://localhost:5173/` or `http://localhost:5173/owner`.
 
-Open `http://localhost:5173/` for the customer site and `http://localhost:5173/owner` for the owner dashboard.
+The Vite development server proxies `/api` to `http://localhost:3001`. In production, `VITE_API_URL` points to the Render API instead. The owner dashboard signs in through `/api/auth/login`; protected booking, menu, and order operations require its HttpOnly session cookie.
 
-The Vite frontend proxies `/api` requests to the Node server at `http://localhost:3001`. Reservations are saved in `data/bookings.json`, so the owner and customer can use different browsers or devices while the Node server is running.
-
-The customer page also supports food orders. Email and phone are optional for reservations and orders; order type is required and can be `Takeaway`, `Dine in`, or `Online`. Orders are stored in `data/orders.json` and managed from the owner's Food orders inbox.
-
-## Run the production build
+Useful standalone commands:
 
 ```powershell
 npm run build
 npm start
 ```
 
-Open `http://localhost:3001/` and `http://localhost:3001/owner`.
+The standalone server is API-only. Check it with `GET http://localhost:3001/api/health`.
 
-## Deploy on Render
+## Netlify deployment
 
-1. Push this project to GitHub, including `render.yaml`.
-2. In Render, choose **New +** -> **Blueprint**.
-3. Select the GitHub repository and branch `fix/added_feature`.
-4. Confirm the service settings from `render.yaml` and deploy.
-5. Open the deployed URL for the customer site. Add `/owner` for the owner dashboard.
+1. Connect the GitHub repository to Netlify.
+2. Set build command to `npm run build`.
+3. Set publish directory to `dist`.
+4. Set `VITE_API_URL` to the deployed Render service URL, for example `https://sorella-api.onrender.com`.
+5. Deploy after the Render API is available, then set the Render `FRONTEND_URL` to the Netlify site URL.
 
-The service uses `npm install && npm run build` to build React and `npm start` to run Node.
+`netlify.toml` provides the SPA fallback so `/owner` and `/bill/...` survive direct navigation and refresh.
 
-The Render blueprint now creates a PostgreSQL database and injects its connection string as `DATABASE_URL`. On first startup, the app creates the SQL tables from `schema.sql` and seeds an empty database from the existing JSON files. Local development continues to use the JSON files when `DATABASE_URL` is not set.
+## Render deployment
 
-Set `OWNER_EMAIL` and `OWNER_PASSWORD` in Render before deploying. The owner dashboard at `/owner` requires this login; booking lists and all menu/order management actions are protected by the session. Use `.env.example` as the local environment template.
+Use the included `render.yaml` as a Blueprint:
 
-When `DATABASE_URL` is configured, production data is stored in PostgreSQL instead of local JSON files. Add owner authentication before sharing the owner URL publicly.
+- Service type: Web Service
+- Build command: `npm install`
+- Start command: `npm start`
+- Database: Render PostgreSQL, injected as `DATABASE_URL`
+
+Set these backend environment variables in Render:
+
+- `NODE_ENV=production`
+- `OWNER_EMAIL` to the owner login email
+- `OWNER_PASSWORD` to a strong password
+- `FRONTEND_URL` to the exact Netlify origin, such as `https://sorella.netlify.app`
+- `DATABASE_URL` is supplied by the Blueprint database connection
+
+On startup, PostgreSQL tables are created from `schema.sql`. If the database tables are empty, the existing JSON files seed the initial menu and categories. With no `DATABASE_URL`, local development uses `data/*.json`.
+
+## Architecture and deployment order
+
+Customer and owner browsers load the React SPA from Netlify and call the Render Express API over HTTPS. Express validates owner sessions for protected endpoints, reads and writes through `db.js`, and uses PostgreSQL in production. No `VITE_*` variable contains a database credential or secret.
+
+Deploy **Render first**, because Netlify needs the final API URL for `VITE_API_URL`. Then deploy Netlify and copy its final origin into Render's `FRONTEND_URL`. Redeploy the frontend if the Render URL was not known when its environment variables were configured.

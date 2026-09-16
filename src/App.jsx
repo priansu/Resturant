@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 
-const api = async (path, options) => {
-  const response = await fetch(`/api${path}`, { headers: { 'Content-Type': 'application/json' }, ...options });
-  if (!response.ok) throw new Error((await response.json()).error || 'Request failed');
+const api = async (path, options = {}) => {
+  const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+  const response = await fetch(`${baseUrl}/api${path}`, { credentials: 'include', headers: { 'Content-Type': 'application/json', ...options.headers }, ...options });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || body.message || 'Request failed');
+  }
   return response.status === 204 ? null : response.json();
 };
 
@@ -37,8 +41,7 @@ function CustomerSite() {
     if (!bookingId) return undefined;
     const loadStatus = async () => {
       try {
-        const bookings = await api('/bookings');
-        setStatus(bookings.find((booking) => booking.id === bookingId) || null);
+        setStatus(await api(`/bookings/${encodeURIComponent(bookingId)}`));
       } catch {
         // The customer page remains usable while the API is unavailable.
       }
@@ -130,15 +133,43 @@ function BillPage() {
   return <main className="bill-page"><a className="brand" href="/"><span className="brand-mark">S</span><span className="brand-copy"><strong>Sorella</strong><small>Italian kitchen</small></span></a><section className="bill-card"><p className="eyebrow"><span className="eyebrow-line"></span> Your dining bill</p><h1>{order ? `Table for ${order.customerName}` : 'Your bill'}</h1>{error && <p className="manager-message">{error}</p>}{order && <><p className="bill-status">{order.status === 'Awaiting reservation' ? 'Waiting for the owner to approve your table.' : `Order status: ${order.status}`}</p><div className="bill-items">{order.items.map((item) => <div className="bill-item" key={item.id}><span>{item.quantity} × {item.name}</span><strong>${(Number(item.price.replace(/[^0-9.]/g, '')) * item.quantity).toFixed(2)}</strong></div>)}</div><div className="bill-total"><span>Total</span><strong>{order.total}</strong></div><p className="bill-note">This bill updates automatically when the restaurant adds items.</p></>}</section></main>;
 }
 
+function OwnerLogin({ onLogin }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+
+  async function submit(event) {
+    event.preventDefault();
+    try {
+      await api('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      onLogin();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  return <main className="bill-page"><section className="bill-card"><p className="eyebrow"><span className="eyebrow-line"></span> Owner access</p><h1>Welcome<br /><em>back.</em></h1><form className="owner-login-form" onSubmit={submit}><label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="username" /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></label><button className="button button-primary" type="submit">Sign in <span>↗</span></button></form>{message && <p className="manager-message">{message}</p>}</section></main>;
+}
+
 function OwnerDashboard() {
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState('all');
   const [toast, setToast] = useState('');
+  const [authenticated, setAuthenticated] = useState(null);
+
+  useEffect(() => {
+    api('/auth/me').then(() => setAuthenticated(true)).catch(() => setAuthenticated(false));
+  }, []);
 
   async function loadBookings() {
     try { setBookings(await api('/bookings')); } catch { setToast('API unavailable. Start the Node server first.'); }
   }
-  useEffect(() => { loadBookings(); const interval = window.setInterval(loadBookings, 4000); return () => window.clearInterval(interval); }, []);
+  useEffect(() => {
+    if (!authenticated) return undefined;
+    loadBookings();
+    const interval = window.setInterval(loadBookings, 4000);
+    return () => window.clearInterval(interval);
+  }, [authenticated]);
 
   async function changeStatus(id, status) {
     await api(`/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
@@ -147,6 +178,9 @@ function OwnerDashboard() {
     window.setTimeout(() => setToast(''), 2500);
   }
   async function removeBooking(id) { await api(`/bookings/${id}`, { method: 'DELETE' }); await loadBookings(); }
+
+  if (authenticated === null) return <main className="bill-page"><p className="manager-message">Checking owner access...</p></main>;
+  if (!authenticated) return <OwnerLogin onLogin={() => setAuthenticated(true)} />;
 
   const visible = filter === 'all' ? bookings : bookings.filter((booking) => booking.status === filter);
   return <div className="owner-app"><header className="owner-header"><a className="brand" href="/"><span className="brand-mark">S</span><span className="brand-copy"><strong>Sorella</strong><small>Owner desk</small></span></a><a className="back-link" href="/">View customer site <span>↗</span></a></header><main className="dashboard"><section className="dashboard-intro"><div><p className="eyebrow"><span></span> Reservation desk</p><h1>Tonight's <em>table.</em></h1><p className="intro-copy">New booking requests appear here as soon as a guest submits the form.</p></div><button className="refresh-button" onClick={loadBookings}><span>↻</span> Refresh</button></section><section className="stats"><div className="stat"><span>Pending requests</span><strong>{bookings.filter((booking) => booking.status === 'Pending').length}</strong></div><div className="stat"><span>Confirmed</span><strong>{bookings.filter((booking) => booking.status === 'Confirmed').length}</strong></div><div className="stat"><span>Total bookings</span><strong>{bookings.length}</strong></div></section><MenuManager /><OrderManager /><section className="bookings-section"><div className="section-heading"><div><p className="eyebrow"><span></span> Live inbox</p><h2>Booking requests</h2></div><label className="filter-label">Show <select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">All bookings</option><option value="Pending">Pending only</option><option value="Confirmed">Confirmed only</option><option value="Rejected">Rejected only</option></select></label></div><div className="booking-list">{visible.length ? visible.map((booking) => <article className={`booking-card ${booking.status.toLowerCase()}`} key={booking.id}><div className="booking-main"><div className="booking-title"><h3>{booking.name}</h3><span className={`status ${booking.status.toLowerCase()}`}>{booking.status}</span></div><div className="booking-details"><span><b>When</b>{formatDate(booking.date)} at {booking.time}</span><span><b>Party</b>{booking.guests}</span>{(booking.email || booking.phone) && <span><b>Contact</b>{booking.email || booking.phone}</span>}</div></div><div className="booking-actions">{booking.status === 'Pending' && <><button className="confirm-button" onClick={() => changeStatus(booking.id, 'Confirmed')}>Confirm booking</button><button className="reject-button" onClick={() => changeStatus(booking.id, 'Rejected')}>Reject</button></>}{booking.status !== 'Pending' && <button className="delete-button" onClick={() => removeBooking(booking.id)}>Remove</button>}</div></article>) : <div className="empty-state"><span>✦</span><h3>No bookings yet</h3><p>New customer reservations will appear here.</p></div>}</div></section></main>{toast && <div className="toast show">{toast}</div>}</div>;
