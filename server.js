@@ -54,6 +54,8 @@ app.post('/api/auth/logout', (request, response) => {
   response.status(204).end();
 });
 
+app.get('/', (_request, response) => response.json({ success: true, message: 'Sorella API is running', health: '/api/health' }));
+
 app.get('/api/health', (_request, response) => response.json({ success: true, message: 'API is running', database: usingDatabase ? 'postgresql' : 'json' }));
 
 app.get('/api/menu', async (_request, response, next) => {
